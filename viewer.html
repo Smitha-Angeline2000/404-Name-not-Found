@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>3D Viewer | ARWork Assist</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    margin: 0;
+    background: #0b1f26;
+    color: white;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+}
+
+header {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    background: rgba(0,0,0,0.4);
+    z-index: 10;
+}
+
+#loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #0b1f26;
+    font-size: 18px;
+    z-index: 20;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h2>3D Reconstruction Viewer</h2>
+    <p>Rotate • Zoom • Inspect blind spots</p>
+</header>
+
+<div id="loading">Loading 3D model…</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.155.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.155.0/examples/js/loaders/GLTFLoader.js"></script>
+
+<script>
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b1f26);
+
+// Camera (far enough for large COLMAP coordinates)
+const camera = new THREE.PerspectiveCamera(
+    60,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    5000
+);
+camera.position.set(0, 0, 50);
+
+// Renderer
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// Controls
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+// Lighting
+scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+const light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(10, 10, 10);
+scene.add(light);
+
+// Debug axes (VERY IMPORTANT)
+scene.add(new THREE.AxesHelper(10));
+
+// Load point-cloud model
+const loader = new THREE.GLTFLoader();
+loader.load(
+    "http://127.0.0.1:5000/model",
+    gltf => {
+        const model = gltf.scene;
+
+        // Ensure points render correctly
+        model.traverse(obj => {
+            if (obj.isPoints) {
+                obj.material.size = 0.05;
+                obj.material.sizeAttenuation = true;
+            }
+        });
+
+        // Center model
+        const box = new THREE.Box3().setFromObject(model);
+        const center = box.getCenter(new THREE.Vector3());
+        model.position.sub(center);
+
+        scene.add(model);
+        document.getElementById("loading").style.display = "none";
+    },
+    undefined,
+    err => {
+        console.error(err);
+        document.getElementById("loading").innerText =
+            "Failed to load 3D model";
+    }
+);
+
+// Render loop
+function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+}
+animate();
+
+// Resize handler
+window.addEventListener("resize", () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+
+</body>
+</html>

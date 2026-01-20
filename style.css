@@ -1,0 +1,187 @@
+/* =========================
+   GLOBAL THEME VARIABLES
+========================= */
+:root {
+    --primary: #5fffe0;
+    --secondary: #4fd1c5;
+    --accent: #00ffd5;
+
+    --dark1: #0a1a1f;
+    --dark2: #102a33;
+    --dark3: #173c46;
+
+    --glass: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.15);
+    --text-light: #eafafa;
+}
+
+/* =========================
+   RESET
+========================= */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* =========================
+   BODY
+========================= */
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background:
+        radial-gradient(circle at top right, rgba(95,255,224,0.15), transparent 40%),
+        radial-gradient(circle at bottom left, rgba(79,209,197,0.12), transparent 40%),
+        linear-gradient(135deg, var(--dark1), var(--dark2), var(--dark3));
+    color: var(--text-light);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* =========================
+   HERO / HEADER
+========================= */
+header {
+    text-align: center;
+    padding: 80px 20px 90px;
+    position: relative;
+}
+
+header h1 {
+    font-size: 46px;
+    font-weight: 700;
+    color: var(--primary);
+    text-shadow: 0 0 20px rgba(95,255,224,0.4);
+}
+
+header p {
+    font-size: 18px;
+    margin-top: 12px;
+    opacity: 0.9;
+}
+
+/* =========================
+   BUTTON
+========================= */
+.btn {
+    display: inline-block;
+    margin-top: 35px;
+    padding: 15px 36px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: #003333;
+    border-radius: 50px;
+    font-size: 16px;
+    text-decoration: none;
+    font-weight: 600;
+    box-shadow: 0 0 25px rgba(95,255,224,0.35);
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 0 40px rgba(95,255,224,0.6);
+}
+
+/* =========================
+   SECTIONS
+========================= */
+section {
+    padding: 70px 8%;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 32px;
+    margin-bottom: 45px;
+    color: var(--primary);
+    text-shadow: 0 0 12px rgba(95,255,224,0.35);
+}
+
+/* =========================
+   ABOUT
+========================= */
+.about {
+    max-width: 900px;
+    margin: auto;
+    text-align: center;
+    font-size: 17px;
+    opacity: 0.95;
+}
+
+/* =========================
+   FEATURES (GLASS CARDS)
+========================= */
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 30px;
+    margin-top: 50px;
+}
+
+.card {
+    background: var(--glass);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    padding: 30px;
+    border-radius: 16px;
+    transition: all 0.35s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(95,255,224,0.15),
+        transparent
+    );
+    opacity: 0;
+    transition: 0.35s;
+}
+
+.card:hover::before {
+    opacity: 1;
+}
+
+.card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+
+.card h3 {
+    color: var(--accent);
+    margin-bottom: 12px;
+    font-size: 18px;
+}
+
+/* =========================
+   WORKFLOW
+========================= */
+.workflow {
+    max-width: 900px;
+    margin: auto;
+}
+
+.step {
+    margin-bottom: 22px;
+    padding: 14px 20px;
+    background: var(--glass);
+    border-left: 4px solid var(--primary);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+}
+
+/* =========================
+   FOOTER
+========================= */
+footer {
+    text-align: center;
+    padding: 22px;
+    background: rgba(0,0,0,0.35);
+    font-size: 14px;
+    opacity: 0.85;
+}

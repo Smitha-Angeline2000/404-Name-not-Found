@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ARWork Assist | Scan</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: radial-gradient(circle at top, #163a44, #081a20);
+    color: #eaffff;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    padding: 30px;
+    text-align: center;
+}
+
+h2 {
+    margin-bottom: 10px;
+}
+
+p {
+    opacity: 0.85;
+}
+
+.controls {
+    margin: 25px 0;
+}
+
+button {
+    background: linear-gradient(135deg, #6fffe9, #3ddad7);
+    border: none;
+    padding: 14px 28px;
+    margin: 8px;
+    border-radius: 30px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+.viewer-btn {
+    background: linear-gradient(135deg, #ffd166, #fca311);
+    color: #000;
+}
+
+#statusText {
+    margin-top: 15px;
+    font-size: 15px;
+    min-height: 20px;
+}
+
+.video-box {
+    margin-top: 30px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 18px;
+    padding: 15px;
+}
+
+video {
+    width: 100%;
+    max-height: 420px;
+    border-radius: 12px;
+    background: black;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Blind-Spot 3D Inspection</h2>
+    <p>
+        Grant camera access and slowly move around the machine area
+        to capture blind spots for 3D reconstruction.
+    </p>
+
+    <div class="controls">
+        <button onclick="startCamera()">Start Camera</button>
+        <button onclick="startScan()">Start Scan</button>
+        <button class="viewer-btn" onclick="openViewer()">Open 3D Viewer</button>
+    </div>
+
+    <div id="statusText"></div>
+
+    <div class="video-box">
+        <video id="video" autoplay playsinline></video>
+    </div>
+</div>
+
+<script>
+let video = document.getElementById("video");
+let statusText = document.getElementById("statusText");
+let frames = [];
+let captureInterval;
+
+// -----------------------------
+// Start Camera
+// -----------------------------
+async function startCamera() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" }, // back camera on phone
+            audio: false
+        });
+        video.srcObject = stream;
+        statusText.innerText = "Camera started. Move slowly around the object.";
+    } catch (err) {
+        statusText.innerText = "Camera access denied.";
+        console.error(err);
+    }
+}
+
+// -----------------------------
+// Start Scan
+// -----------------------------
+function startScan() {
+    frames = [];
+    statusText.innerText = "Capturing frames…";
+
+    captureInterval = setInterval(captureFrame, 500); // every 0.5 sec
+
+    // Capture for 10 seconds
+    setTimeout(() => {
+        clearInterval(captureInterval);
+        uploadFrames();
+    }, 10000);
+}
+
+// -----------------------------
+// Capture Frame
+// -----------------------------
+function captureFrame() {
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0);
+
+    canvas.toBlob(blob => {
+        if (blob) frames.push(blob);
+    }, "image/jpeg");
+}
+
+// -----------------------------
+// Upload Frames
+// -----------------------------
+async function uploadFrames() {
+    if (frames.length === 0) {
+        statusText.innerText = "No frames captured.";
+        return;
+    }
+
+    const formData = new FormData();
+    frames.forEach((frame, i) => {
+        formData.append("images", frame, `frame_${i}.jpg`);
+    });
+
+    statusText.innerText = "Uploading frames…";
+
+    await fetch("http://127.0.0.1:5000/upload", {
+        method: "POST",
+        body: formData
+    });
+
+    statusText.innerText = "Processing 3D model…";
+    waitForModel();
+}
+
+// -----------------------------
+// Poll backend for model readiness
+// -----------------------------
+function waitForModel() {
+    const interval = setInterval(async () => {
+        const res = await fetch("http://127.0.0.1:5000/status");
+        const data = await res.json();
+
+        if (data.ready) {
+            clearInterval(interval);
+            statusText.innerText = "3D model ready! Redirecting…";
+            setTimeout(() => {
+                window.location.href = "viewer.html";
+            }, 1500);
+        }
+    }, 3000);
+}
+
+// -----------------------------
+// Manual Viewer Navigation
+// -----------------------------
+function openViewer() {
+    window.location.href = "viewer.html";
+}
+</script>
+
+</body>
+</html>
+
+
+
